@@ -1,1 +1,1 @@
-/home/brian/rust_proj/plan-b/target/debug/web: /home/brian/rust_proj/plan-b/web/src/main.rs
+/home/brian/red_frog/plan-b/target/debug/web: /home/brian/red_frog/plan-b/web/src/main.rs

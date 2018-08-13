@@ -2,19 +2,19 @@
 Copyright © 2018 EVE-escapes
 
 ## Authors:
+This Project
+__Brian Allen: briallen@pdx.edu__  
+Eve Escapes:
 __Brian Allen: briallen@pdx.edu__  
 __Gavin Balakrishnan: gavin4@pdx.edu__  
 __Israel Bond: ibond@pdx.edu__   
 __Samuel Strba: sstrba@pdx.edu__  
-#### Built under a GNU General Public License      
+Plan B:
+__Po Huit: eve.po.huit@gmail.com__
+#### Built under a MIT General Public License      
+*To be *very* clear, the only code I wrote for this project will be found within the web folder and inside the map.rs file.
 
-Command line application that supplies support to EVE Online players while they travel through the EVE universe.
-Most players could benefit from being able to create a shortest path to a location
-based on amount of kills in a system.  
 
-This is the perfect starting point for any EVE mapping development. 
-Provides a database built around system_ids and connections using kill data directly from CCP and zkilboard.
-  
 ### Other software contributions
 * Web framework with:
   * CSS
