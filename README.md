@@ -2,14 +2,17 @@
 Copyright © 2018 EVE-escapes
 
 ## Authors:
-*This Project:
+This Project:
+
 __Brian Allen: briallen@pdx.edu__  
-*Eve Escapes:
+Eve Escapes:
+
 __Brian Allen: briallen@pdx.edu__  
 __Gavin Balakrishnan: gavin4@pdx.edu__  
 __Israel Bond: ibond@pdx.edu__   
 __Samuel Strba: sstrba@pdx.edu__  
-*Plan B:
+Plan B:
+
 __Po Huit: eve.po.huit@gmail.com__
 #### Built under a MIT General Public License      
 *To be *very* clear, the only code I wrote for this project will be found within the web folder and inside the map.rs file.
