@@ -1,0 +1,16 @@
+/home/brian/plan-b/target/debug/deps/libcalamine-b06d6221f308c432.rlib: /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/lib.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/utils.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/auto.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/cfb.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/datatype.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/ods.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/xls.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/xlsb.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/xlsx.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/de.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/errors.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/vba.rs
+
+/home/brian/plan-b/target/debug/deps/calamine-b06d6221f308c432.d: /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/lib.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/utils.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/auto.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/cfb.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/datatype.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/ods.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/xls.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/xlsb.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/xlsx.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/de.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/errors.rs /home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/vba.rs
+
+/home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/lib.rs:
+/home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/utils.rs:
+/home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/auto.rs:
+/home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/cfb.rs:
+/home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/datatype.rs:
+/home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/ods.rs:
+/home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/xls.rs:
+/home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/xlsb.rs:
+/home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/xlsx.rs:
+/home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/de.rs:
+/home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/errors.rs:
+/home/brian/.cargo/registry/src/github.com-1ecc6299db9ec823/calamine-0.14.3/src/vba.rs:
