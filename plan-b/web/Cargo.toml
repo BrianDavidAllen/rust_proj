@@ -9,3 +9,4 @@ mime = "0.2.3"
 router = "0.5.1"
 urlencoded = "0.5.0"
 sqlite3 = "0.24.0"
+plan_b = {path = "../plan_b"}

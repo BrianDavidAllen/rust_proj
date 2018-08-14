@@ -3,6 +3,10 @@ extern crate router;
 extern crate sqlite3;
 extern crate urlencoded;
 
+extern crate plan_b;
+use plan_b::map::*;
+use plan_b::search::*;
+
 use router::Router;
 use sqlite3::State;
 use std::str::FromStr;
@@ -13,44 +17,75 @@ extern crate mime;
 use iron::prelude::*;
 use iron::status;
 
-//The base of this web service comes from Programming Rust:Fast, Safe Systems Develpment pg 38-45
-fn main() {
-    let mut router = Router::new();
-
-    router.get("/", get_form, "root");
-    router.post("/gcd", post_gcd, "gcd");
-
-    println!("Serving	on	http://localhost:3000...");
-    Iron::new(router).http("localhost:3001").unwrap();
+#[derive(Clone, Debug)]
+pub struct System_data{
+    pub system_name : String,
+    pub system_kills : String,
 }
 
-fn get_form(_request: &mut Request) -> IronResult<Response> {
+impl System_data{
+    pub fn new(name: String, kills: String)-> System_data{
+        System_data{system_name: name, system_kills: kills}
+    }
+}
+//Use database of current kills from Eve-escapes --Brian Allen 
+fn get_kills_by_route(mut systems: Vec<SystemId>) -> Vec<System_data> {
+    let mut systems_data = Vec::new();
+    let mut a_system_data = System_data::new("Butt".to_string(),0.to_string());
+    //open connection to eve.db
+	let connection = sqlite3::open("../kill_data/eve_system.db").expect("Error opening data base");
+    //use a_system to select system from eve.db
+    for system in systems{
+	    let mut statement = connection.prepare("Select * FROM systems WHERE system_id = ?").expect("error with statemtn");
+        statement.bind(1, system.0 as i64).expect("error binding statement");
+        while let State::Row = statement.next().unwrap() {
+            a_system_data.system_name = statement.read::<String>(1).expect("Error getting system_name");
+            a_system_data.system_kills = statement.read::<String>(3).expect("Error getting system_kills");
+        }
+        systems_data.push(a_system_data.clone());
+    }
+    systems_data
+}
+
+fn find_route(map: &Map, start: &str, goal: &str) -> Vec<SystemId> {
+    let start_id = find_system(&map, start);
+    let goal_id = find_system(&map, goal);
+    shortest_route(&map, start_id, goal_id)
+        .expect(&format!("no route found from {} to {}", start, goal))
+}
+
+fn find_system(map: &Map, name: &str) -> SystemId {
+    map.by_name(name)
+        .expect(&format!("could not find {} in map", name))
+        .system_id
+}
+
+fn get_route(_request: &mut Request) -> IronResult<Response> {
     let mut response = Response::new();
 
     response.set_mut(status::Ok);
     response.set_mut(mime!(Text/Html; Charset=Utf8));
     response.set_mut(r#"
 	<title>Eve Plan B Route Planner</title>
-	<form action="/gcd"	method="post">
-		From:<input	type="text"	name="n"/>
+	<form action="/find_route"	method="post">
+		From:<input	type="text"	name="systems"/>
 		<select name="high_sec">
 			<option value="to_high_sec">To high sec</option>
 			<option value="to_system">To system</option>
 		</select>	
-		<input type="text" name="n"/>
+		<input type="text" name="systems"/>
 		<br></br>
 		Number of paths:<input type = "text" name="num_paths"/>
 		<br></br>
 		Max Jumps: <input type ="text" name="jumps"/>
-		
-		<button	type="submit">Compute GCD</button>
+		<button	type="submit">Find Route</button>
 	</form>
 	"#);
 
     Ok(response)
 }
 
-fn post_gcd(request: &mut Request) -> IronResult<Response> {
+fn post_route(request: &mut Request) -> IronResult<Response> {
     let mut response = Response::new();
 
     let form_data = match request.get_ref::<UrlEncodedBody>() {
@@ -62,76 +97,42 @@ fn post_gcd(request: &mut Request) -> IronResult<Response> {
         Ok(map) => map,
     };
 
-    let unparsed_number = match form_data.get("n") {
+
+    //Parse the To and From systems -- Brian Allen 
+    let input_systems = match form_data.get("systems") {
         None => {
             response.set_mut(status::BadRequest);
-            response.set_mut(format!("Form data has no 'n' parameters\n"));
-            return Ok(response);
+            response.set_mut(format!("Form data has no from system!\n"));
+            return Ok(response)
         }
-        Some(nums) => nums,
+        Some(from_sys) => from_sys,
     };
-
-    let mut numbers = Vec::new();
-    for unparsed in unparsed_number {
-        match u64::from_str(&unparsed) {
-            Err(_) => {
-                response.set_mut(status::BadRequest);
-                response.set_mut(format!(
-                    "Value for 'n' parameter not a number: {:?}\n",
-                    unparsed
-                ));
-                return Ok(response);
-            }
-            Ok(n) => {numbers.push(n);}
-        }
+    //put systems as string into vector to call find_route --Brian Allen 
+    let mut systems = Vec::new();
+    for system in input_systems {
+        systems.push(system.to_string());
     }
-
-    let mut d = numbers[0];
-    for m in &numbers[1..] {
-        d = gcd(d, *m);
-    }
-
+    //open map and find route --Thank you Po Huit 
+    let map = Map::fetch().expect("could not open map");
+    let route = find_route(&map, &systems[0], &systems[1]);
+    let route_with_kills = get_kills_by_route(route);
     response.set_mut(status::Ok);
     response.set_mut(mime!(Text/Html; Charset=Utf8));
-    response.set_mut(format!("From {:?} to {}\n", numbers, d));
+    response.set_mut(format!("Shortest path from {:?} to {:?} is {:?}\n", systems[0], systems[1], route_with_kills));
     Ok(response)
 }
-fn gcd(mut n: u64, mut m: u64) -> u64 {
-    assert!(n != 0 && m != 0);
-    while m != 0 {
-        if m < n {
-            let t = m;
-            m = n;
-            n = t
-        }
-        m %= n
-    }
-    n
-}
-
-fn get_kills_by_name(a_system: &str, mut systems: Vec<String>) {
-    //open connection to eve.db
-	let connection = sqlite3::open("./eve_system.db").unwrap();
-    //use a_system to select system from eve.db
-	let mut statement = connection.prepare("Select * FROM systems WHERE system_id = 30002187").unwrap();
-	
-	while let State::Row = statement.next().unwrap() {
-		println!("system_id = {}", statement.read::<String>(0).unwrap());
-		println!("system_name = {}", statement.read::<String>(1).unwrap());
-		println!("security_status = {}", statement.read::<String>(2).unwrap());
-		println!("kills = {}", statement.read::<String>(3).unwrap());
-		println!("connections = {}", statement.read::<String>(4).unwrap());
-
-	}
-	//add system info to vec
-	//return vec
-}
 
 
-fn get_kills_by_id(a_system: usize, mut systems: Vec<String>) {
-    //open connection to eve.db
-    //use a_system to select system from eve.dc
-	//add system info to vec
-	//return vec
+
+
+//The base of this web service comes from Programming Rust:Fast, Safe Systems Develpment pg 38-45
+fn main() {
+    let mut router = Router::new();
+
+    router.get("/", get_route, "root");
+    router.post("/find_route", post_route, "gcd");
+
+    println!("Serving	on	http://localhost:3022...");
+    Iron::new(router).http("localhost:3022").unwrap();
 }
 

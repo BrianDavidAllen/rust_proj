@@ -19,7 +19,13 @@ use std::slice;
 
 /// A `SystemId` as defined by CCP.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct SystemId(usize);
+pub struct SystemId(pub usize);
+
+/*impl SystemId {
+    pub fn get_id(&self) -> usize{
+        
+    }
+}*/
 
 /// Map info on a given system.
 #[derive(Debug)]
@@ -103,7 +109,7 @@ fn find_map_file() -> Result<File, Box<Error>> {
     for fname in [
         "./static/eve-map.json.gz",
         "./eve-map.json.gz",
-        "/usr/local/share/eve-map.json.gz",
+        "/home/brian/red_frog/plan-b/eve-map.json.gz",
         ].iter()
     {
         f = Some(File::open(fname));
