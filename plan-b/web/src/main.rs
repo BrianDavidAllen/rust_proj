@@ -1,13 +1,21 @@
 extern crate iron;
 extern crate router;
-extern crate sqlite3;
-extern crate urlencoded;
-extern crate plan_b;
 
+extern crate sqlite3;
+use sqlite3::State;
+
+extern crate urlencoded;
+
+extern crate plan_b;
 use plan_b::map::*;
 use plan_b::search::*;
+
+extern crate noisy_float;
+use noisy_float::prelude::*;
+
+
 use router::Router;
-use sqlite3::State;
+
 use std::str::FromStr;
 use urlencoded::UrlEncodedBody;
 
@@ -53,7 +61,7 @@ fn find_route(map: &Map, start: &str, goal: &str) -> Vec<SystemId> {
         .expect(&format!("no route found from {} to {}", start, goal))
 }
 
-fn find_route_sec(map: &Map, start: &str, goal_sec: i64) -> Vec<SystemId> {
+fn find_route_sec(map: &Map, start: &str, goal_sec: R64) -> Vec<SystemId> {
     let start_id = find_system(&map, start);
     //let goal_id = find_system(&map, goal);
     shortest_route_sec(&map, start_id, goal_sec)
@@ -115,25 +123,32 @@ fn post_route(request: &mut Request) -> IronResult<Response> {
         }
         Some(from_sys) => from_sys,
     };
+    //fetch map before calling route or route_sec 
+    let map = Map::fetch().expect("could not open map");
+    let mut systems = Vec::new();
+    for system in input_systems {
+        systems.push(system.to_string());
+    }
 
     //Check to see where the route is to
     let high_sec = form_data.get("route_finder").unwrap();
     if high_sec[0] == "high_sec".to_string() {
         //call the search function for high_sec
+        let route_sec = find_route_sec(&map, &systems[0], r64(0.5));
+        let route_with_kills = get_kills_by_route(route_sec);
         //place holder till high_sec function is done
         response.set_mut(status::Ok);
         response.set_mut(mime!(Text/Html; Charset=Utf8));
-        response.set_mut(format!("To high_sec is not implemented yet"));
+        response.set_mut(format!("Shortest path from {:?} to high sec is {:?}\n 
+                        <form action = \"/\" method = \"get\"><button type = \"submit\">I'll have another!</button></form>
+                        ", systems[0], route_with_kills));
         return Ok(response)
     }
  
     //put systems as string into vector to call find_route --Brian Allen 
-    let mut systems = Vec::new();
-    for system in input_systems {
-        systems.push(system.to_string());
-    }
+    
     //open map and find route --Thank you Po Huit 
-    let map = Map::fetch().expect("could not open map");
+
     let route = find_route(&map, &systems[0], &systems[1]);
     let route_with_kills = get_kills_by_route(route);
     

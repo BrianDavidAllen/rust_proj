@@ -7,6 +7,9 @@
 
 extern crate ndarray;
 
+extern crate noisy_float;
+use search::noisy_float::prelude::*;
+
 use self::ndarray::Array2;
     
 use std::collections::VecDeque;
@@ -45,12 +48,12 @@ struct Waypoint {
     /// Next hop back toward parent, if not at start.
     parent: Option<SystemId>,
     ///Add sec value
-    sec: i64,
+    sec: R64,
 }
 
 impl Waypoint {
     /// Create a new waypoint; mild syntactic sugar.
-    fn new(dist: usize, cur: SystemId, parent: Option<SystemId>, sec: i64)
+    fn new(dist: usize, cur: SystemId, parent: Option<SystemId>, sec: R64)
            -> Waypoint
     {
         Waypoint{dist, cur, parent, sec}
@@ -65,7 +68,7 @@ fn bfs(map: &Map, start: SystemId, goal: Option<SystemId>)
     // Set up data structures and run the search.
     let mut q = VecDeque::with_capacity(map.systems_ref().len());
     let mut closed = HashMap::new();
-    q.push_back(Waypoint::new(0, start, None, 0));
+    q.push_back(Waypoint::new(0, start, None, r64(0.1)));
     loop {
         // Examine best waypoint.
         let waypoint = match q.pop_front() {
@@ -78,7 +81,6 @@ fn bfs(map: &Map, start: SystemId, goal: Option<SystemId>)
         closed.insert(waypoint.cur, waypoint.clone());
 
         // If we have found the goal, we are done.
-        //change this for sec value
         if goal == Some(waypoint.cur) {
             return closed;
         }
@@ -90,53 +92,12 @@ fn bfs(map: &Map, start: SystemId, goal: Option<SystemId>)
                 waypoint.dist + 1,
                 *child,
                 Some(waypoint.cur),
-                map_info.sec_status.round() as i64,
+                map_info.sec_status,
             );
             q.push_back(child_waypoint);
         }
     }
 }
-
-// Single-source shortest path via Breadth-First Search.
-// Returns a waypoint map for further processing.
-fn bfs_sec(map: &Map, start: SystemId, goal: i64)
-            -> HashMap<SystemId, Waypoint>
-{
-    // Set up data structures and run the search.
-    let mut q = VecDeque::with_capacity(map.systems_ref().len());
-    let mut closed = HashMap::new();
-    q.push_back(Waypoint::new(0, start, None, 0));
-    loop {
-        // Examine best waypoint.
-        let waypoint = match q.pop_front() {
-            Some(waypoint) => waypoint,
-            None => return closed,
-        };
-        if closed.contains_key(&waypoint.cur) {
-            continue;
-        }
-        closed.insert(waypoint.cur, waypoint.clone());
-
-        // If we have found the goal, we are done.
-        //change this for sec value
-        if  waypoint.sec >= goal {
-            return closed;
-        }
-
-        // Open the children of the current system.
-        let map_info = map.by_system_id(waypoint.cur);
-        for child in map_info.stargates.iter() {
-            let child_waypoint = Waypoint::new(
-                waypoint.dist + 1,
-                *child,
-                Some(waypoint.cur),
-                map_info.sec_status.round() as i64,
-            );
-            q.push_back(child_waypoint);
-        }
-    }
-}
-    
 
 /// Return a shortest route if one exists.
 pub fn shortest_route(map: &Map, start: SystemId, goal: SystemId)
@@ -161,27 +122,70 @@ pub fn shortest_route(map: &Map, start: SystemId, goal: SystemId)
     route.reverse();
     Some(route)
 }
+
+// Single-source shortest path via Breadth-First Search.
+// Returns a waypoint map for further processing.
+fn bfs_sec(map: &Map, start: SystemId, goal: R64)
+            -> (HashMap<SystemId, Waypoint>, SystemId)
+{
+    // Set up data structures and run the search.
+    let mut q = VecDeque::with_capacity(map.systems_ref().len());
+    let mut closed = HashMap::new();
+    q.push_back(Waypoint::new(0, start, None, r64(0.0)));
+    loop {
+        // Examine best waypoint.
+        let waypoint = match q.pop_front() {
+            Some(waypoint) => waypoint,
+            None => return (closed, start),
+        };
+        if closed.contains_key(&waypoint.cur) {
+            continue;
+        }
+        closed.insert(waypoint.cur, waypoint.clone());
+
+        // If we have found the goal, we are done.
+        //change this for sec value
+        if  waypoint.sec == goal || waypoint.sec > goal {
+            println!("sec end point is {:?}", waypoint.cur);
+            ///Not sure why, but had to return the parent waypoint or route would be one too long.
+            return (closed, waypoint.parent.unwrap());
+        }
+
+        // Open the children of the current system.
+        let map_info = map.by_system_id(waypoint.cur);
+        for child in map_info.stargates.iter() {
+            let child_waypoint = Waypoint::new(
+                waypoint.dist + 1,
+                *child,
+                Some(waypoint.cur),
+                map_info.sec_status,
+            );
+            q.push_back(child_waypoint);
+        }
+    }
+}
+
 /// Return a shortest route if one exists.
-pub fn shortest_route_sec(map: &Map, start: SystemId, goal: i64)
+pub fn shortest_route_sec(map: &Map, start: SystemId, goal: R64)
                       -> Option<Vec<SystemId>>
 {
     // Find single-source shortest paths from start up to goal.
     let waypoints = bfs_sec(map, start, goal);
 
     // Set up state and walk route.
-    let cur = waypoints.get(&start)?;
+    let cur = waypoints.0.get(&waypoints.1)?;
     let mut route = Vec::with_capacity(cur.dist as usize);
     let mut next_stop = cur.parent;
     route.push(cur.cur);
     while let Some(system_id) = next_stop {
         route.push(system_id);
-        let cur = waypoints[&system_id].clone();
+        let cur = waypoints.0[&system_id].clone();
         next_stop = cur.parent;
     }
 
     // Route was walked in reverse order. Reverse and return
     // it.
-    //route.reverse();
+    route.reverse();
     Some(route)
 }
 /// Compute the diameter of New Eden, with other interesting

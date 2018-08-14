@@ -9,6 +9,10 @@
 extern crate serde;
 extern crate serde_json;
 
+extern crate noisy_float;
+use map::noisy_float::prelude::*;
+use map::noisy_float::types::R64;
+
 extern crate libflate;
 use self::libflate::gzip;
 
@@ -34,7 +38,7 @@ pub struct SystemInfo {
     /// Index into the `Map`'s internal system list.
     pub system_index: usize,
     //insert security_status here?
-    pub sec_status: f64,
+    pub sec_status: R64,
 }
 
 /// The map, containing info needed for routing.
@@ -155,7 +159,7 @@ impl Map {
                 name: system.name.clone(),
                 stargates,
                 system_index,
-                sec_status: system.security_status,
+                sec_status: r64(system.security_status),
                 //insert security_status here?
             };
             systems.push(system_info);
