@@ -21,12 +21,6 @@ use std::slice;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SystemId(pub usize);
 
-/*impl SystemId {
-    pub fn get_id(&self) -> usize{
-        
-    }
-}*/
-
 /// Map info on a given system.
 #[derive(Debug)]
 pub struct SystemInfo {
@@ -39,6 +33,8 @@ pub struct SystemInfo {
     pub stargates: Vec<SystemId>,
     /// Index into the `Map`'s internal system list.
     pub system_index: usize,
+    //insert security_status here?
+    pub sec_status: f64,
 }
 
 /// The map, containing info needed for routing.
@@ -71,7 +67,6 @@ mod json_repr {
         pub destination: Destination,
         pub name: String,
         pub position: Point,
-        pub stargate_id: usize,
         pub system_id: usize,
         pub type_id: usize,
     }
@@ -160,6 +155,8 @@ impl Map {
                 name: system.name.clone(),
                 stargates,
                 system_index,
+                sec_status: system.security_status,
+                //insert security_status here?
             };
             systems.push(system_info);
             by_system_id.insert(system_id, system_index);
