@@ -2,11 +2,10 @@ extern crate iron;
 extern crate router;
 extern crate sqlite3;
 extern crate urlencoded;
-
 extern crate plan_b;
+
 use plan_b::map::*;
 use plan_b::search::*;
-
 use router::Router;
 use sqlite3::State;
 use std::str::FromStr;
@@ -54,6 +53,13 @@ fn find_route(map: &Map, start: &str, goal: &str) -> Vec<SystemId> {
         .expect(&format!("no route found from {} to {}", start, goal))
 }
 
+fn find_route_sec(map: &Map, start: &str, goal_sec: i64) -> Vec<SystemId> {
+    let start_id = find_system(&map, start);
+    //let goal_id = find_system(&map, goal);
+    shortest_route_sec(&map, start_id, goal_sec)
+        .expect(&format!("no route found from {} to high sec", start))
+}
+
 fn find_system(map: &Map, name: &str) -> SystemId {
     map.by_name(name)
         .expect(&format!("could not find {} in map", name))
@@ -69,15 +75,17 @@ fn get_route(_request: &mut Request) -> IronResult<Response> {
 	<title>Eve Plan B Route Planner</title>
 	<form action="/find_route"	method="post">
 		From:<input	type="text"	name="systems"/>
-		<select name="high_sec">
-			<option value="to_high_sec">To high sec</option>
-			<option value="to_system">To system</option>
+		<select name="route_finder">
+			<option value="system">To system</option>
+            <option value="high_sec">To high sec</option>
+            <option value="trade_hub">To trade hub</option>
 		</select>	
 		<input type="text" name="systems"/>
 		<br></br>
 		Number of paths:<input type = "text" name="num_paths"/>
 		<br></br>
 		Max Jumps: <input type ="text" name="jumps"/>
+        </br>
 		<button	type="submit">Find Route</button>
 	</form>
 	"#);
@@ -107,6 +115,18 @@ fn post_route(request: &mut Request) -> IronResult<Response> {
         }
         Some(from_sys) => from_sys,
     };
+
+    //Check to see where the route is to
+    let high_sec = form_data.get("route_finder").unwrap();
+    if high_sec[0] == "high_sec".to_string() {
+        //call the search function for high_sec
+        //place holder till high_sec function is done
+        response.set_mut(status::Ok);
+        response.set_mut(mime!(Text/Html; Charset=Utf8));
+        response.set_mut(format!("To high_sec is not implemented yet"));
+        return Ok(response)
+    }
+ 
     //put systems as string into vector to call find_route --Brian Allen 
     let mut systems = Vec::new();
     for system in input_systems {
@@ -116,15 +136,16 @@ fn post_route(request: &mut Request) -> IronResult<Response> {
     let map = Map::fetch().expect("could not open map");
     let route = find_route(&map, &systems[0], &systems[1]);
     let route_with_kills = get_kills_by_route(route);
+    
+    //send back response 
     response.set_mut(status::Ok);
     response.set_mut(mime!(Text/Html; Charset=Utf8));
-    response.set_mut(format!("Shortest path from {:?} to {:?} is {:?}\n", systems[0], systems[1], route_with_kills));
+    //response.set_mut(r#"<form action = "/" method = "get"><button type = "submit">I'll have another!</button></form>"#);
+    response.set_mut(format!("Shortest path from {:?} to {:?} is {:?}\n 
+                            <form action = \"/\" method = \"get\"><button type = \"submit\">I'll have another!</button></form>
+                            ", systems[0], systems[1], route_with_kills));
     Ok(response)
 }
-
-
-
-
 //The base of this web service comes from Programming Rust:Fast, Safe Systems Develpment pg 38-45
 fn main() {
     let mut router = Router::new();
@@ -132,7 +153,7 @@ fn main() {
     router.get("/", get_route, "root");
     router.post("/find_route", post_route, "gcd");
 
-    println!("Serving	on	http://localhost:3022...");
-    Iron::new(router).http("localhost:3022").unwrap();
+    println!("Serving	on	http://localhost:3004...");
+    Iron::new(router).http("localhost:3004").unwrap();
 }
 
