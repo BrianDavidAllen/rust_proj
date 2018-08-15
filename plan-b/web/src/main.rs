@@ -64,6 +64,7 @@ fn get_route(_request: &mut Request) -> IronResult<Response> {
 
     response.set_mut(status::Ok);
     response.set_mut(mime!(Text/Html; Charset=Utf8));
+    //set get data to be simple form --Brian Allen 
     response.set_mut(r#"
 	<title>Eve Plan B Route Planner</title>
 	<form action="/find_route"	method="post">
@@ -116,8 +117,8 @@ fn post_route(request: &mut Request) -> IronResult<Response> {
     }
 
     //Check to see where the route is to
-    let high_sec = form_data.get("route_finder").unwrap();
-    if high_sec[0] == "high_sec".to_string() {
+    let route_finder = form_data.get("route_finder").unwrap();
+    if route_finder[0] == "high_sec".to_string() {
         //call the search function for high_sec
         let route_sec = find_route_sec(&map, &systems[0], r64(0.5));
         let route_with_kills = get_kills_by_route(route_sec);
@@ -126,7 +127,56 @@ fn post_route(request: &mut Request) -> IronResult<Response> {
         response.set_mut(status::Ok);
         response.set_mut(mime!(Text/Html; Charset=Utf8));
         //All HTML and JavaScript made possible by W3schools
-        //Set formated response. Parse route in HTML table
+        //Set formated response. Parse route in HTML table --Brian Allen 
+        response.set_mut(format!("Shortest path from {:?} to high sec is
+                        <html>
+                        <head>
+                        <style>
+                        table, td {{
+                            border: 1px solid black;
+                        }}
+                        </style>
+                        </head>
+                        <body>
+                        <table id=\"system_table\">
+                        </table> 
+                        <script>
+                            var systems = {};
+                            var table = document.getElementById(\"system_table\");
+                            for (i in systems) {{
+                                var row = table.insertRow(i);
+                                var cell1 = row.insertCell(0);
+                                var cell2 = row.insertCell(1);
+                                var system_str = systems[i].system_name;
+                                var system_result = system_str.link(\"http://evemaps.dotlan.net/system/\" + system_str);
+                                cell1.innerHTML = system_result;
+                                cell2.innerHTML = systems[i].system_kills;
+                            }}
+                            var table = document.getElementById(\"system_table\");
+                            var header = table.createTHead();
+                            var row = header.insertRow(0);
+                            var cell = row.insertCell(0);
+                            var row_2 = header.insertRow(1);
+                            var cell_2 = row.insertCell(1);
+                            cell.innerHTML = \"<b>System Name</b>\";
+                            cell_2.innerHTML = \"<b>Recent Kills</b>\";
+                        </script> 
+                        <form action = \"/\" method = \"get\"><button type = \"submit\">I'll have another!</button></form>
+                        </body>
+                        </html>
+                        ",systems[0], route_with_kills_json));
+        return Ok(response)
+    }
+    if route_finder[0] == "trade_hub".to_string(){
+        //call the search function for trade hubs
+        let route_hub_major = find_route_hub_major(&map, &systems[0]);
+        let route_with_kills = get_kills_by_route(route_hub_major);
+        let route_with_kills_json = serde_json::to_string(&route_with_kills).unwrap();
+        //place holder till high_sec function is done
+        response.set_mut(status::Ok);
+        response.set_mut(mime!(Text/Html; Charset=Utf8));
+        //All HTML and JavaScript made possible by W3schools
+        //Set formated response. Parse route in HTML table --Brian Allen 
         response.set_mut(format!("Shortest path from {:?} to high sec is
                         <html>
                         <head>
@@ -168,15 +218,13 @@ fn post_route(request: &mut Request) -> IronResult<Response> {
     }
  
     //put systems as string into vector to call find_route --Brian Allen 
-
     let route = find_route(&map, &systems[0], &systems[1]);
     let route_with_kills = get_kills_by_route(route);
     let route_with_kills_json = serde_json::to_string(&route_with_kills).unwrap();
     
-    //send back response 
+    //send back response --Brian Allen
     response.set_mut(status::Ok);
     response.set_mut(mime!(Text/Html; Charset=Utf8));
-    //response.set_mut(r#"<form action = "/" method = "get"><button type = "submit">I'll have another!</button></form>"#);
     response.set_mut(format!("Shortest path from {:?} to {:?} is
                         <html>
                         <head>
@@ -196,7 +244,9 @@ fn post_route(request: &mut Request) -> IronResult<Response> {
                                 var row = table.insertRow(i);
                                 var cell1 = row.insertCell(0);
                                 var cell2 = row.insertCell(1);
-                                cell1.innerHTML =systems[i].system_name;
+                                var system_str = systems[i].system_name;
+                                var system_result = system_str.link(\"http://evemaps.dotlan.net/system/\" + system_str);
+                                cell1.innerHTML = system_result;
                                 cell2.innerHTML = systems[i].system_kills;
                             }}
                             var table = document.getElementById(\"system_table\");
@@ -220,10 +270,16 @@ fn find_route(map: &Map, start: &str, goal: &str) -> Vec<SystemId> {
     shortest_route(&map, start_id, goal_id)
         .expect(&format!("no route found from {} to {}", start, goal))
 }
-//Modified function for finding shortest route to high sec
+//Modified function for finding shortest route to high sec --Brian Allen
 fn find_route_sec(map: &Map, start: &str, goal_sec: R64) -> Vec<SystemId> {
     let start_id = find_system(&map, start);
     shortest_route_sec(&map, start_id, goal_sec)
+        .expect(&format!("no route found from {} to high sec", start))
+}
+//Modified function for find shortest route to major trade hub --Brian Allen 
+fn find_route_hub_major(map: &Map, start: &str) -> Vec<SystemId> {
+    let start_id = find_system(&map, start);
+    shortest_route_hub_major(&map, start_id)
         .expect(&format!("no route found from {} to high sec", start))
 }
 
