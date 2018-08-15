@@ -11,3 +11,6 @@ urlencoded = "0.5.0"
 sqlite3 = "0.24.0"
 plan_b = {path = "../plan_b"}
 noisy_float = "0.1.7"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"

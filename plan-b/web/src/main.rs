@@ -1,5 +1,12 @@
+
+extern crate serde;
+extern crate serde_json;
+
 extern crate iron;
+use urlencoded::UrlEncodedBody;
+
 extern crate router;
+use router::Router;
 
 extern crate sqlite3;
 use sqlite3::State;
@@ -13,18 +20,16 @@ use plan_b::search::*;
 extern crate noisy_float;
 use noisy_float::prelude::*;
 
-
-use router::Router;
-
-use std::str::FromStr;
-use urlencoded::UrlEncodedBody;
-
 #[macro_use]
 extern crate mime;
 use iron::prelude::*;
 use iron::status;
 
-#[derive(Clone, Debug)]
+#[macro_use]
+extern crate serde_derive;
+
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct System_data{
     pub system_name : String,
     pub system_kills : String,
@@ -37,7 +42,7 @@ impl System_data{
 }
 //Use database of current kills from Eve-escapes --Brian Allen 
 fn get_kills_by_route(mut systems: Vec<SystemId>) -> Vec<System_data> {
-    let mut systems_data = Vec::new();
+    let mut systems_data = Vec::<System_data>::new();
     let mut a_system_data = System_data::new("Butt".to_string(),0.to_string());
     //open connection to eve.db
 	let connection = sqlite3::open("../kill_data/eve_system.db").expect("Error opening data base");
@@ -54,25 +59,6 @@ fn get_kills_by_route(mut systems: Vec<SystemId>) -> Vec<System_data> {
     systems_data
 }
 
-fn find_route(map: &Map, start: &str, goal: &str) -> Vec<SystemId> {
-    let start_id = find_system(&map, start);
-    let goal_id = find_system(&map, goal);
-    shortest_route(&map, start_id, goal_id)
-        .expect(&format!("no route found from {} to {}", start, goal))
-}
-//Modified function for finding shortest route to high sec
-fn find_route_sec(map: &Map, start: &str, goal_sec: R64) -> Vec<SystemId> {
-    let start_id = find_system(&map, start);
-    shortest_route_sec(&map, start_id, goal_sec)
-        .expect(&format!("no route found from {} to high sec", start))
-}
-
-fn find_system(map: &Map, name: &str) -> SystemId {
-    map.by_name(name)
-        .expect(&format!("could not find {} in map", name))
-        .system_id
-}
-
 fn get_route(_request: &mut Request) -> IronResult<Response> {
     let mut response = Response::new();
 
@@ -85,13 +71,13 @@ fn get_route(_request: &mut Request) -> IronResult<Response> {
 		<select name="route_finder">
 			<option value="system">To system</option>
             <option value="high_sec">To high sec</option>
-            <option value="trade_hub">To trade hub</option>
+            <option value="trade_hub">To trade hub(not implemented yet)</option>
 		</select>	
 		<input type="text" name="systems"/>
 		<br></br>
-		Number of paths:<input type = "text" name="num_paths"/>
+		Number of paths:<input type = "text" value = "Not implemented yet" name="num_paths"/>
 		<br></br>
-		Max Jumps: <input type ="text" name="jumps"/>
+		Max Jumps: <input type ="text" value ="Not implemented yet" name="jumps"/>
         </br>
 		<button	type="submit">Find Route</button>
 	</form>
@@ -135,30 +121,116 @@ fn post_route(request: &mut Request) -> IronResult<Response> {
         //call the search function for high_sec
         let route_sec = find_route_sec(&map, &systems[0], r64(0.5));
         let route_with_kills = get_kills_by_route(route_sec);
+        let route_with_kills_json = serde_json::to_string(&route_with_kills).unwrap();
         //place holder till high_sec function is done
         response.set_mut(status::Ok);
         response.set_mut(mime!(Text/Html; Charset=Utf8));
-        response.set_mut(format!("Shortest path from {:?} to high sec is {:?}\n 
+        //All HTML and JavaScript made possible by W3schools
+        //Set formated response. Parse route in HTML table
+        response.set_mut(format!("Shortest path from {:?} to high sec is
+                        <html>
+                        <head>
+                        <style>
+                        table, td {{
+                            border: 1px solid black;
+                        }}
+                        </style>
+                        </head>
+                        <body>
+                        <table id=\"system_table\">
+                        </table> 
+                        <script>
+                            var systems = {};
+                            var table = document.getElementById(\"system_table\");
+                            for (i in systems) {{
+                                var row = table.insertRow(i);
+                                var cell1 = row.insertCell(0);
+                                var cell2 = row.insertCell(1);
+                                var system_str = systems[i].system_name;
+                                var system_result = system_str.link(\"http://evemaps.dotlan.net/system/\" + system_str);
+                                cell1.innerHTML = system_result;
+                                cell2.innerHTML = systems[i].system_kills;
+                            }}
+                            var table = document.getElementById(\"system_table\");
+                            var header = table.createTHead();
+                            var row = header.insertRow(0);
+                            var cell = row.insertCell(0);
+                            var row_2 = header.insertRow(1);
+                            var cell_2 = row.insertCell(1);
+                            cell.innerHTML = \"<b>System Name</b>\";
+                            cell_2.innerHTML = \"<b>Recent Kills</b>\";
+                        </script> 
                         <form action = \"/\" method = \"get\"><button type = \"submit\">I'll have another!</button></form>
-                        ", systems[0], route_with_kills));
+                        </body>
+                        </html>
+                        ",systems[0], route_with_kills_json));
         return Ok(response)
     }
  
     //put systems as string into vector to call find_route --Brian Allen 
-    
-    //open map and find route --Thank you Po Huit 
 
     let route = find_route(&map, &systems[0], &systems[1]);
     let route_with_kills = get_kills_by_route(route);
+    let route_with_kills_json = serde_json::to_string(&route_with_kills).unwrap();
     
     //send back response 
     response.set_mut(status::Ok);
     response.set_mut(mime!(Text/Html; Charset=Utf8));
     //response.set_mut(r#"<form action = "/" method = "get"><button type = "submit">I'll have another!</button></form>"#);
-    response.set_mut(format!("Shortest path from {:?} to {:?} is {:?}\n 
-                            <form action = \"/\" method = \"get\"><button type = \"submit\">I'll have another!</button></form>
-                            ", systems[0], systems[1], route_with_kills));
+    response.set_mut(format!("Shortest path from {:?} to {:?} is
+                        <html>
+                        <head>
+                        <style>
+                        table, td {{
+                            border: 1px solid black;
+                        }}
+                        </style>
+                        </head>
+                        <body>
+                        <table id=\"system_table\">
+                        </table> 
+                        <script>
+                            var systems = {};
+                            var table = document.getElementById(\"system_table\");
+                            for (i in systems) {{
+                                var row = table.insertRow(i);
+                                var cell1 = row.insertCell(0);
+                                var cell2 = row.insertCell(1);
+                                cell1.innerHTML =systems[i].system_name;
+                                cell2.innerHTML = systems[i].system_kills;
+                            }}
+                            var table = document.getElementById(\"system_table\");
+                            var header = table.createTHead();
+                            var row = header.insertRow(0);
+                            var cell = row.insertCell(0);
+                            var row_2 = header.insertRow(1);
+                            var cell_2 = row.insertCell(1);
+                            cell.innerHTML = \"<b>System Name</b>\";
+                            cell_2.innerHTML = \"<b>Recent Kills</b>\";
+                        </script> 
+                        <form action = \"/\" method = \"get\"><button type = \"submit\">I'll have another!</button></form>
+                        </body>
+                        </html>", systems[0], systems[1], route_with_kills_json));
     Ok(response)
+}
+
+fn find_route(map: &Map, start: &str, goal: &str) -> Vec<SystemId> {
+    let start_id = find_system(&map, start);
+    let goal_id = find_system(&map, goal);
+    shortest_route(&map, start_id, goal_id)
+        .expect(&format!("no route found from {} to {}", start, goal))
+}
+//Modified function for finding shortest route to high sec
+fn find_route_sec(map: &Map, start: &str, goal_sec: R64) -> Vec<SystemId> {
+    let start_id = find_system(&map, start);
+    shortest_route_sec(&map, start_id, goal_sec)
+        .expect(&format!("no route found from {} to high sec", start))
+}
+
+fn find_system(map: &Map, name: &str) -> SystemId {
+    map.by_name(name)
+        .expect(&format!("could not find {} in map", name))
+        .system_id
 }
 //The base of this web service comes from Programming Rust:Fast, Safe Systems Develpment pg 38-45
 fn main() {
@@ -167,7 +239,7 @@ fn main() {
     router.get("/", get_route, "root");
     router.post("/find_route", post_route, "gcd");
 
-    println!("Serving	on	http://localhost:3004...");
-    Iron::new(router).http("localhost:3004").unwrap();
+    println!("Serving	on	http://localhost:3005...");
+    Iron::new(router).http("localhost:3005").unwrap();
 }
 
