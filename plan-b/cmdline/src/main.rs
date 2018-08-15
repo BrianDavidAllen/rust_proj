@@ -35,6 +35,19 @@ fn find_route_sec(map: &Map, start: &str, goal_sec: R64) -> Vec<SystemId> {
         .expect(&format!("no route found from {} to high sec", start))
 }
 
+fn find_route_hub_major(map: &Map, start: &str) -> Vec<SystemId> {
+    let start_id = find_system(&map, start);
+    shortest_route_hub_major(&map, start_id)
+        .expect(&format!("no route found from {} to high sec", start))
+}
+
+//Modified function for find shortest route to major trade hub --Brian Allen 
+fn find_route_hub_minor(map: &Map, start: &str) -> Vec<SystemId> {
+    let start_id = find_system(&map, start);
+    shortest_route_hub_minor(&map, start_id)
+        .expect(&format!("no route found from {} to high sec", start))
+}
+
 #[test]
 // Check for correct computation of a long route.
 fn short_route_north_south() {
@@ -62,11 +75,11 @@ fn main() {
         }
         return;
     }
+    
     if start == "--highsec" {
         //Flag for finding shortest path to highsec.
         let goal = r64(0.5);
         let start_sec = &(&mut args).next().expect("no source");
-        println!("start_sec = {}", start_sec);
         let route = find_route_sec(&map, &start_sec, goal);
         for system_id in route {
           let system = map.by_system_id(system_id);
@@ -74,6 +87,30 @@ fn main() {
         }
         return;
     }
+    //delete start_sec use start?
+    if start == "--major_hub" {
+        //Flag for finding shortest path to highsec.
+        let start_sec = &(&mut args).next().expect("no source");
+        let route = find_route_hub_major(&map, &start_sec);
+        for system_id in route {
+          let system = map.by_system_id(system_id);
+          println!("{}", system.name);
+        }
+        return;
+    }
+
+    if start == "--minor_hub" {
+        //Flag for finding shortest path to highsec.
+        let start_sec = &(&mut args).next().expect("no source");
+        let route = find_route_hub_minor(&map, &start_sec);
+        for system_id in route {
+          let system = map.by_system_id(system_id);
+          println!("{}", system.name);
+        }
+        return;
+    }
+
+    
 
     // Get the destination, find the route and display it.
     let goal = (&mut args).next().expect("no destination");
