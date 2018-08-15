@@ -27,7 +27,7 @@ fn find_route(map: &Map, start: &str, goal: &str) -> Vec<SystemId> {
     shortest_route(&map, start_id, goal_id)
         .expect(&format!("no route found from {} to {}", start, goal))
 }
-
+///Left af the find_route_blahs in cmd line and web interface seperate --Brian Allen 
 // Modified function for finding shortest route to high sec
 fn find_route_sec(map: &Map, start: &str, goal_sec: R64) -> Vec<SystemId> {
     let start_id = find_system(&map, start);
@@ -35,6 +35,7 @@ fn find_route_sec(map: &Map, start: &str, goal_sec: R64) -> Vec<SystemId> {
         .expect(&format!("no route found from {} to high sec", start))
 }
 
+// Modified function for finding shortest route to major trade hub --Brian Allen 
 fn find_route_hub_major(map: &Map, start: &str) -> Vec<SystemId> {
     let start_id = find_system(&map, start);
     shortest_route_hub_major(&map, start_id)
@@ -56,6 +57,8 @@ fn short_route_north_south() {
     assert_eq!(80, route.len());
 }
 
+//add test here 
+
 // Command-line Plan B. */
 fn main() {
     // Set up the map.
@@ -75,7 +78,7 @@ fn main() {
         }
         return;
     }
-    
+    //Block for getting highsec route
     if start == "--highsec" {
         //Flag for finding shortest path to highsec.
         let goal = r64(0.5);
@@ -87,6 +90,7 @@ fn main() {
         }
         return;
     }
+    //Block for geting major trade hub route
     //delete start_sec use start?
     if start == "--major_hub" {
         //Flag for finding shortest path to highsec.
@@ -99,6 +103,7 @@ fn main() {
         return;
     }
 
+    //Block for getting minor trade hub route 
     if start == "--minor_hub" {
         //Flag for finding shortest path to highsec.
         let start_sec = &(&mut args).next().expect("no source");

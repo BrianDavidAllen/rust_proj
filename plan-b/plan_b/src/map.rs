@@ -9,6 +9,7 @@
 extern crate serde;
 extern crate serde_json;
 
+//Had to import noisy_floats to Ord and Eq for waypoints in search.rs --Brian Allen 
 extern crate noisy_float;
 use map::noisy_float::prelude::*;
 use map::noisy_float::types::R64;
@@ -37,7 +38,7 @@ pub struct SystemInfo {
     pub stargates: Vec<SystemId>,
     /// Index into the `Map`'s internal system list.
     pub system_index: usize,
-    //insert security_status here?
+    //Added sec_status for the highsec search --Brian Allen 
     pub sec_status: R64,
 }
 
@@ -108,6 +109,7 @@ fn find_map_file() -> Result<File, Box<Error>> {
     for fname in [
         "./static/eve-map.json.gz",
         "./eve-map.json.gz",
+        //THIS IS MACHINE DEPENDENT WILL NEED TO CHANGE LOCATION PER MACHINE --Brian Allen 
         "/home/brian/red_frog/plan-b/eve-map.json.gz",
         ].iter()
     {
@@ -159,8 +161,8 @@ impl Map {
                 name: system.name.clone(),
                 stargates,
                 system_index,
+                //Save noisy_float into SystemInfo for search.rs --Brian Allen 
                 sec_status: r64(system.security_status),
-                //insert security_status here?
             };
             systems.push(system_info);
             by_system_id.insert(system_id, system_index);

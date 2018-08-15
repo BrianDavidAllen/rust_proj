@@ -7,6 +7,8 @@
 
 extern crate ndarray;
 
+
+//Again needed noisy floats for Ord and Eq on waypoints --Brian Allen 
 extern crate noisy_float;
 use search::noisy_float::prelude::*;
 
@@ -47,12 +49,13 @@ struct Waypoint {
     cur: SystemId,
     /// Next hop back toward parent, if not at start.
     parent: Option<SystemId>,
-    ///Add sec value 
+    ///Added noisy_float for highsec search --Brian Allen  
     sec: R64,
 }
 
 impl Waypoint {
     /// Create a new waypoint; mild syntactic sugar.
+    // Added sec value to waypoint
     fn new(dist: usize, cur: SystemId, parent: Option<SystemId>, sec: R64)
            -> Waypoint
     {
@@ -68,6 +71,7 @@ fn bfs(map: &Map, start: SystemId, goal: Option<SystemId>)
     // Set up data structures and run the search.
     let mut q = VecDeque::with_capacity(map.systems_ref().len());
     let mut closed = HashMap::new();
+    //Added sec value to waypoint init --Brian Allen 
     q.push_back(Waypoint::new(0, start, None, r64(0.1)));
     loop {
         // Examine best waypoint.
@@ -123,7 +127,7 @@ pub fn shortest_route(map: &Map, start: SystemId, goal: SystemId)
     Some(route)
 }
 
-// Single-source shortest path via Breadth-First Search. Modified to find high sec --Brian Allen 
+// Single-source shortest path via Breadth-First Search. Changed return type to tuple to get the end system --Brian Allen 
 // Returns a waypoint map for further processing.
 fn bfs_sec(map: &Map, start: SystemId, goal: R64)
             -> (HashMap<SystemId, Waypoint>, SystemId)
@@ -144,14 +148,15 @@ fn bfs_sec(map: &Map, start: SystemId, goal: R64)
         closed.insert(waypoint.cur, waypoint.clone());
 
         // If we have found the goal, we are done.
-        //change this for sec value
+        //Changed for finding highsec --Brian ALlen 
         if  waypoint.sec == goal || waypoint.sec > goal {
             println!("sec end point is {:?}", waypoint.cur);
-            //Not sure why, but had to return the parent waypoint or route would be one too long.
+            //Not sure why, but had to return the parent waypoint or route would be one too long -- Brian Allen 
             return (closed, waypoint.parent.unwrap());
         }
 
         // Open the children of the current system.
+        //Add security value to children --Brian Allen 
         let map_info = map.by_system_id(waypoint.cur);
         for child in map_info.stargates.iter() {
             let child_waypoint = Waypoint::new(
@@ -165,7 +170,8 @@ fn bfs_sec(map: &Map, start: SystemId, goal: R64)
     }
 }
 
-/// Return a shortest route if one exists. Modified function to find high sec
+/// Return a shortest route if one exists. 
+//Modified function to find high sec. Had to do goofy things with tuples to make it work --Brian Allen 
 pub fn shortest_route_sec(map: &Map, start: SystemId, goal: R64)
                       -> Option<Vec<SystemId>>
 {
@@ -183,13 +189,12 @@ pub fn shortest_route_sec(map: &Map, start: SystemId, goal: R64)
         next_stop = cur.parent;
     }
 
-    // Route was walked in reverse order. Reverse and return
-    // it.
+    // Route was walked in reverse order. Reverse and return it.
     route.reverse();
     Some(route)
 }
 
-// Single-source shortest path via Breadth-First Search.
+// Single-source shortest path via Breadth-First Search. Hardcoded to find Major hubs. Need a flag system for searches..
 // Returns a waypoint map for further processing.
 fn bfs_hub_major(map: &Map, start: SystemId)
             -> (HashMap<SystemId, Waypoint>, SystemId)
@@ -210,7 +215,6 @@ fn bfs_hub_major(map: &Map, start: SystemId)
         closed.insert(waypoint.cur, waypoint.clone());
 
         // If we have found the goal, we are done.
-        //change this for sec value
         if  waypoint.cur.0 == 30000142 || waypoint.cur.0 == 30002187 || waypoint.cur.0 == 30002510 || 
                 waypoint.cur.0 == 30002659 || waypoint.cur.0 == 30002053 {
             return (closed, waypoint.cur);
@@ -230,7 +234,7 @@ fn bfs_hub_major(map: &Map, start: SystemId)
     }
 }
 
-/// Return a shortest route if one exists. Modified function to find high sec
+/// Return a shortest route if one exists. Modified function to find Major trade hub
 pub fn shortest_route_hub_major(map: &Map, start: SystemId)
                       -> Option<Vec<SystemId>>
 {
@@ -254,7 +258,7 @@ pub fn shortest_route_hub_major(map: &Map, start: SystemId)
     Some(route)
 }
 
-// Single-source shortest path via Breadth-First Search.
+// Single-source shortest path via Breadth-First Search. Hardcoded values to find minor hubs
 // Returns a waypoint map for further processing.
 fn bfs_hub_minor(map: &Map, start: SystemId)
             -> (HashMap<SystemId, Waypoint>, SystemId)
@@ -275,7 +279,6 @@ fn bfs_hub_minor(map: &Map, start: SystemId)
         closed.insert(waypoint.cur, waypoint.clone());
 
         // If we have found the goal, we are done.
-        //change this for sec value
         if  waypoint.cur.0 == 30004969 || waypoint.cur.0 == 30001671 || waypoint.cur.0 == 30003862 {
             return (closed, waypoint.cur);
         }
@@ -294,7 +297,7 @@ fn bfs_hub_minor(map: &Map, start: SystemId)
     }
 }
 
-/// Return a shortest route if one exists. Modified function to find high sec
+/// Return a shortest route if one exists. Modified function to find minor trade hubs.
 pub fn shortest_route_hub_minor(map: &Map, start: SystemId)
                       -> Option<Vec<SystemId>>
 {

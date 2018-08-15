@@ -1,4 +1,3 @@
-
 extern crate serde;
 extern crate serde_json;
 
@@ -28,44 +27,58 @@ use iron::status;
 #[macro_use]
 extern crate serde_derive;
 
-
+///Struct for making json data --Brian Allen 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct System_data{
-    pub system_name : String,
-    pub system_kills : String,
+pub struct System_data {
+    pub system_name: String,
+    pub system_kills: String,
 }
-
-impl System_data{
-    pub fn new(name: String, kills: String)-> System_data{
-        System_data{system_name: name, system_kills: kills}
+//create new System data --Brian Allen 
+impl System_data {
+    pub fn new(name: String, kills: String) -> System_data {
+        System_data {
+            system_name: name,
+            system_kills: kills,
+        }
     }
 }
-//Use database of current kills from Eve-escapes --Brian Allen 
+//Use database of current kills from Eve-escapes --Brian Allen
 fn get_kills_by_route(mut systems: Vec<SystemId>) -> Vec<System_data> {
     let mut systems_data = Vec::<System_data>::new();
-    let mut a_system_data = System_data::new("Butt".to_string(),0.to_string());
+    let mut a_system_data = System_data::new("Butt".to_string(), 0.to_string());
     //open connection to eve.db
-	let connection = sqlite3::open("../kill_data/eve_system.db").expect("Error opening data base");
+    let connection = sqlite3::open("../kill_data/eve_system.db").expect("Error opening data base");
+    
     //use a_system to select system from eve.db
-    for system in systems{
-	    let mut statement = connection.prepare("Select * FROM systems WHERE system_id = ?").expect("error with statemtn");
-        statement.bind(1, system.0 as i64).expect("error binding statement");
+    for system in systems {
+        let mut statement = connection
+            .prepare("Select * FROM systems WHERE system_id = ?")
+            .expect("error with statemtn");
+        statement
+            .bind(1, system.0 as i64)
+            .expect("error binding statement");
         while let State::Row = statement.next().unwrap() {
-            a_system_data.system_name = statement.read::<String>(1).expect("Error getting system_name");
-            a_system_data.system_kills = statement.read::<String>(3).expect("Error getting system_kills");
+            a_system_data.system_name = statement
+                .read::<String>(1)
+                .expect("Error getting system_name");
+            a_system_data.system_kills = statement
+                .read::<String>(3)
+                .expect("Error getting system_kills");
         }
         systems_data.push(a_system_data.clone());
     }
     systems_data
 }
 
+///Function to get form data. Base came from Programming Rust:Fast, Safe Systems Develpment pg 38-45 --Brian Allen 
 fn get_route(_request: &mut Request) -> IronResult<Response> {
     let mut response = Response::new();
 
     response.set_mut(status::Ok);
     response.set_mut(mime!(Text/Html; Charset=Utf8));
-    //set get data to be simple form --Brian Allen 
-    response.set_mut(r#"
+    //set get data to be simple form --Brian Allen
+    response.set_mut(
+        r#"
 	<title>Eve Plan B Route Planner</title>
 	<form action="/find_route"	method="post">
 		From:<input	type="text"	name="systems"/>
@@ -83,11 +96,14 @@ fn get_route(_request: &mut Request) -> IronResult<Response> {
         </br>
 		<button	type="submit">Find Route</button>
 	</form>
-	"#);
+	"#,
+    );
 
     Ok(response)
 }
 
+///Post data. Will send html/js response with data --Brian Allen
+//Base comes from Programming Rust:Fast, Safe Systems Develpment pg 38-45
 fn post_route(request: &mut Request) -> IronResult<Response> {
     let mut response = Response::new();
 
@@ -100,35 +116,37 @@ fn post_route(request: &mut Request) -> IronResult<Response> {
         Ok(map) => map,
     };
 
-
-    //Parse the To and From systems -- Brian Allen 
+    //Parse the To and From systems -- Brian Allen
     let input_systems = match form_data.get("systems") {
         None => {
             response.set_mut(status::BadRequest);
             response.set_mut(format!("Form data has no from system!\n"));
-            return Ok(response)
+            return Ok(response);
         }
         Some(from_sys) => from_sys,
     };
-    //fetch map before calling route or route_sec 
+    
+    //fetch map before calling route or route_sec
     let map = Map::fetch().expect("could not open map");
     let mut systems = Vec::new();
     for system in input_systems {
         systems.push(system.to_string());
     }
 
-    //Check to see where the route is to
+    //Check to see where the route is to -- Brian Allen 
     let route_finder = form_data.get("route_finder").unwrap();
+    
     if route_finder[0] == "high_sec".to_string() {
-        //call the search function for high_sec
+        //call the search function for high_sec --Brian Allen 
         let route_sec = find_route_sec(&map, &systems[0], r64(0.5));
         let route_with_kills = get_kills_by_route(route_sec);
+        //make it ready for JS work --Brian Allen 
         let route_with_kills_json = serde_json::to_string(&route_with_kills).unwrap();
-        //place holder till high_sec function is done
+        
         response.set_mut(status::Ok);
-        response.set_mut(mime!(Text/Html; Charset=Utf8));
+        response.set_mut(mime!(Text/Html; Charset=Utf8));       
         //All HTML and JavaScript made possible by W3schools
-        //Set formated response. Parse route in HTML table --Brian Allen 
+        //Set formated response. Parse route in HTML table --Brian Allen
         response.set_mut(format!("Shortest path from {:?} to high sec is
                         <html>
                         <head>
@@ -166,18 +184,17 @@ fn post_route(request: &mut Request) -> IronResult<Response> {
                         </body>
                         </html>
                         ",systems[0], route_with_kills_json));
-        return Ok(response)
+        return Ok(response);
     }
-    if route_finder[0] == "trade_hub_minor".to_string(){
-        //call the search function for trade hubs
+    if route_finder[0] == "trade_hub_minor".to_string() {
+        //call the search function for trade hubs --Brian Allen 
         let route_hub_minor = find_route_hub_minor(&map, &systems[0]);
         let route_with_kills = get_kills_by_route(route_hub_minor);
         let route_with_kills_json = serde_json::to_string(&route_with_kills).unwrap();
-        //place holder till high_sec function is done
         response.set_mut(status::Ok);
         response.set_mut(mime!(Text/Html; Charset=Utf8));
         //All HTML and JavaScript made possible by W3schools
-        //Set formated response. Parse route in HTML table --Brian Allen 
+        //Set formated response. Parse route in HTML table --Brian Allen
         response.set_mut(format!("Shortest path from {:?} to high sec is
                         <html>
                         <head>
@@ -215,19 +232,18 @@ fn post_route(request: &mut Request) -> IronResult<Response> {
                         </body>
                         </html>
                         ",systems[0], route_with_kills_json));
-        return Ok(response)
+        return Ok(response);
     }
- 
-    if route_finder[0] == "trade_hub".to_string(){
+
+    if route_finder[0] == "trade_hub".to_string() {
         //call the search function for trade hubs
         let route_hub_major = find_route_hub_major(&map, &systems[0]);
         let route_with_kills = get_kills_by_route(route_hub_major);
         let route_with_kills_json = serde_json::to_string(&route_with_kills).unwrap();
-        //place holder till high_sec function is done
         response.set_mut(status::Ok);
         response.set_mut(mime!(Text/Html; Charset=Utf8));
         //All HTML and JavaScript made possible by W3schools
-        //Set formated response. Parse route in HTML table --Brian Allen 
+        //Set formated response. Parse route in HTML table --Brian Allen
         response.set_mut(format!("Shortest path from {:?} to high sec is
                         <html>
                         <head>
@@ -265,17 +281,18 @@ fn post_route(request: &mut Request) -> IronResult<Response> {
                         </body>
                         </html>
                         ",systems[0], route_with_kills_json));
-        return Ok(response)
+        return Ok(response);
     }
 
-    //put systems as string into vector to call find_route --Brian Allen 
+    //put systems as string into vector to call find_route --Brian Allen
     let route = find_route(&map, &systems[0], &systems[1]);
     let route_with_kills = get_kills_by_route(route);
     let route_with_kills_json = serde_json::to_string(&route_with_kills).unwrap();
-    
+
     //send back response --Brian Allen
     response.set_mut(status::Ok);
     response.set_mut(mime!(Text/Html; Charset=Utf8));
+    //Again all HTML and JS made possibl by W3Schools
     response.set_mut(format!("Shortest path from {:?} to {:?} is
                         <html>
                         <head>
@@ -327,14 +344,14 @@ fn find_route_sec(map: &Map, start: &str, goal_sec: R64) -> Vec<SystemId> {
     shortest_route_sec(&map, start_id, goal_sec)
         .expect(&format!("no route found from {} to high sec", start))
 }
-//Modified function for find shortest route to major trade hub --Brian Allen 
+//Modified function for find shortest route to major trade hub --Brian Allen
 fn find_route_hub_major(map: &Map, start: &str) -> Vec<SystemId> {
     let start_id = find_system(&map, start);
     shortest_route_hub_major(&map, start_id)
         .expect(&format!("no route found from {} to high sec", start))
 }
 
-//Modified function for find shortest route to major trade hub --Brian Allen 
+//Modified function for find shortest route to major trade hub --Brian Allen
 fn find_route_hub_minor(map: &Map, start: &str) -> Vec<SystemId> {
     let start_id = find_system(&map, start);
     shortest_route_hub_minor(&map, start_id)
@@ -356,4 +373,3 @@ fn main() {
     println!("Serving	on	http://localhost:3005...");
     Iron::new(router).http("localhost:3005").unwrap();
 }
-
