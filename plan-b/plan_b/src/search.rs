@@ -147,7 +147,7 @@ fn bfs_sec(map: &Map, start: SystemId, goal: R64)
         //change this for sec value
         if  waypoint.sec == goal || waypoint.sec > goal {
             println!("sec end point is {:?}", waypoint.cur);
-            ///Not sure why, but had to return the parent waypoint or route would be one too long.
+            //Not sure why, but had to return the parent waypoint or route would be one too long.
             return (closed, waypoint.parent.unwrap());
         }
 

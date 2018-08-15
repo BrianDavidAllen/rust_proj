@@ -10,6 +10,7 @@ authors = ["Po Huit <eve.po.huit@gmail.com>"]
 
 [dependencies]
 plan_b = {path = "../plan_b"}
+noisy_float = "0.1.7"
 
 [[bin]]
 name = "plan-b"

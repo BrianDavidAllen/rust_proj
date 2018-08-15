@@ -60,10 +60,9 @@ fn find_route(map: &Map, start: &str, goal: &str) -> Vec<SystemId> {
     shortest_route(&map, start_id, goal_id)
         .expect(&format!("no route found from {} to {}", start, goal))
 }
-
+//Modified function for finding shortest route to high sec
 fn find_route_sec(map: &Map, start: &str, goal_sec: R64) -> Vec<SystemId> {
     let start_id = find_system(&map, start);
-    //let goal_id = find_system(&map, goal);
     shortest_route_sec(&map, start_id, goal_sec)
         .expect(&format!("no route found from {} to high sec", start))
 }

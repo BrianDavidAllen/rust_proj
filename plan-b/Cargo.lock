@@ -48,6 +48,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "cmdline"
 version = "0.1.0"
 dependencies = [
+ "noisy_float 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "plan_b 0.1.0",
 ]
 

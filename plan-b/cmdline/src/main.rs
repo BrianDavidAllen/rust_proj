@@ -5,6 +5,8 @@
 
 // Plan B: EVE route planner with options
 // Command-line demo client
+extern crate noisy_float;
+use noisy_float::prelude::*;
 
 extern crate plan_b;
 use plan_b::map::*;
@@ -24,6 +26,13 @@ fn find_route(map: &Map, start: &str, goal: &str) -> Vec<SystemId> {
     let goal_id = find_system(&map, goal);
     shortest_route(&map, start_id, goal_id)
         .expect(&format!("no route found from {} to {}", start, goal))
+}
+
+// Modified function for finding shortest route to high sec
+fn find_route_sec(map: &Map, start: &str, goal_sec: R64) -> Vec<SystemId> {
+    let start_id = find_system(&map, start);
+    shortest_route_sec(&map, start_id, goal_sec)
+        .expect(&format!("no route found from {} to high sec", start))
 }
 
 #[test]
@@ -50,6 +59,18 @@ fn main() {
             let start = &map.by_system_id(start).name;
             let end = &map.by_system_id(end).name;
             println!("{} → {}", start, end);
+        }
+        return;
+    }
+    if start == "--highsec" {
+        //Flag for finding shortest path to highsec.
+        let goal = r64(0.5);
+        let start_sec = &(&mut args).next().expect("no source");
+        println!("start_sec = {}", start_sec);
+        let route = find_route_sec(&map, &start_sec, goal);
+        for system_id in route {
+          let system = map.by_system_id(system_id);
+          println!("{}", system.name);
         }
         return;
     }
