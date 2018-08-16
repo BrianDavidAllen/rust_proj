@@ -11,6 +11,9 @@ authors = ["Po Huit <eve.po.huit@gmail.com>"]
 [dependencies]
 plan_b = {path = "../plan_b"}
 noisy_float = "0.1.7"
+rand = "0.3"
+sqlite3 = "0.24.0"
+
 
 [[bin]]
 name = "plan-b"

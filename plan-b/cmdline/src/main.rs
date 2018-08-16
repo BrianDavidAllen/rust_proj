@@ -8,9 +8,15 @@
 extern crate noisy_float;
 use noisy_float::prelude::*;
 
+extern crate sqlite3;
+use sqlite3::State;
+
 extern crate plan_b;
 use plan_b::map::*;
 use plan_b::search::*;
+
+extern crate rand;
+use rand::Rng;
 
 // Look up the given system name in the map, and panic if
 // not found. This should be cleaned up.
@@ -57,10 +63,99 @@ fn short_route_north_south() {
     assert_eq!(80, route.len());
 }
 
+#[test]
+//check that route_sec and route outputs are equal with same input --Brian Allen 
+fn test_route_sec() {
+    let map = Map::fetch().expect("could not open map");
+    let mut rng = rand::thread_rng();
+    let systems = map.systems_ref();    
+    let number = systems.len();
+    let mut rand_system: usize = rng.gen::<usize>();
+    rand_system = rand_system % number;
+    let system = &systems[rand_system];
+    
+    let first_route = find_route_sec(&map, &system.name, r64(0.5));
 
+    //had to use database to get from system_id to name.
+    let connection = sqlite3::open("../kill_data/eve_system.db").expect("Error opening data base");
+    let mut end = String::new();
+    let mut statement = connection
+            .prepare("Select * FROM systems WHERE system_id = ?")
+            .expect("error with statemtn");
+        statement
+            .bind(1, first_route[first_route.len() -1].0 as i64)
+            .expect("error binding statement");
+        while let State::Row = statement.next().unwrap() {
+            end = statement
+                .read::<String>(1)
+                .expect("Error getting system_name");
+        }
+    let second_route = find_route(&map, &system.name, &end);
 
-//add test here 
+    assert_eq!(first_route, second_route);
+}
 
+#[test]
+//check that route_sec and route outputs are equal with same input --Brian Allen 
+fn test_route_major() {
+    let map = Map::fetch().expect("could not open map");
+    let mut rng = rand::thread_rng();
+    let systems = map.systems_ref();    
+    let number = systems.len();
+    let mut rand_system: usize = rng.gen::<usize>();
+    rand_system = rand_system % number;
+    let system = &systems[rand_system];
+    
+    let first_route = find_route_hub_major(&map, &system.name);
+
+    //had to use database to get from system_id to name.
+    let connection = sqlite3::open("../kill_data/eve_system.db").expect("Error opening data base");
+    let mut end = String::new();
+    let mut statement = connection
+            .prepare("Select * FROM systems WHERE system_id = ?")
+            .expect("error with statemtn");
+        statement
+            .bind(1, first_route[first_route.len() -1].0 as i64)
+            .expect("error binding statement");
+        while let State::Row = statement.next().unwrap() {
+            end = statement
+                .read::<String>(1)
+                .expect("Error getting system_name");
+        }
+    let second_route = find_route(&map, &system.name, &end);
+
+    assert_eq!(first_route, second_route);
+}
+ #[test]
+fn test_route_minor() {
+    let map = Map::fetch().expect("could not open map");
+    let mut rng = rand::thread_rng();
+    let systems = map.systems_ref();    
+    let number = systems.len();
+    let mut rand_system: usize = rng.gen::<usize>();
+    rand_system = rand_system % number;
+    let system = &systems[rand_system];
+    
+    let first_route = find_route_hub_minor(&map, &system.name);
+
+    //had to use database to get from system_id to name.
+    let connection = sqlite3::open("../kill_data/eve_system.db").expect("Error opening data base");
+    let mut end = String::new();
+    let mut statement = connection
+            .prepare("Select * FROM systems WHERE system_id = ?")
+            .expect("error with statemtn");
+        statement
+            .bind(1, first_route[first_route.len() -1].0 as i64)
+            .expect("error binding statement");
+        while let State::Row = statement.next().unwrap() {
+            end = statement
+                .read::<String>(1)
+                .expect("Error getting system_name");
+        }
+    let second_route = find_route(&map, &system.name, &end);
+
+    assert_eq!(first_route, second_route);
+}
 // Command-line Plan B. */
 fn main() {
     // Set up the map.

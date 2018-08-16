@@ -42,6 +42,33 @@ impl System_data {
         }
     }
 }
+
+//Modified function for finding shortest route to high sec --Brian Allen
+fn find_route_sec(map: &Map, start: &str, goal_sec: R64) -> Vec<SystemId> {
+    let start_id = find_system(&map, start);
+    shortest_route_sec(&map, start_id, goal_sec)
+        .expect(&format!("no route found from {} to high sec", start))
+}
+//Modified function for find shortest route to major trade hub --Brian Allen
+fn find_route_hub_major(map: &Map, start: &str) -> Vec<SystemId> {
+    let start_id = find_system(&map, start);
+    shortest_route_hub_major(&map, start_id)
+        .expect(&format!("no route found from {} to high sec", start))
+}
+
+//Modified function for find shortest route to major trade hub --Brian Allen
+fn find_route_hub_minor(map: &Map, start: &str) -> Vec<SystemId> {
+    let start_id = find_system(&map, start);
+    shortest_route_hub_minor(&map, start_id)
+        .expect(&format!("no route found from {} to high sec", start))
+}
+
+fn find_system(map: &Map, name: &str) -> SystemId {
+    map.by_name(name)
+        .expect(&format!("could not find {} in map", name))
+        .system_id
+}
+
 //Use database of current kills from Eve-escapes --Brian Allen
 fn get_kills_by_route(mut systems: Vec<SystemId>) -> Vec<System_data> {
     let mut systems_data = Vec::<System_data>::new();
@@ -339,31 +366,7 @@ fn find_route(map: &Map, start: &str, goal: &str) -> Vec<SystemId> {
     shortest_route(&map, start_id, goal_id)
         .expect(&format!("no route found from {} to {}", start, goal))
 }
-//Modified function for finding shortest route to high sec --Brian Allen
-fn find_route_sec(map: &Map, start: &str, goal_sec: R64) -> Vec<SystemId> {
-    let start_id = find_system(&map, start);
-    shortest_route_sec(&map, start_id, goal_sec)
-        .expect(&format!("no route found from {} to high sec", start))
-}
-//Modified function for find shortest route to major trade hub --Brian Allen
-fn find_route_hub_major(map: &Map, start: &str) -> Vec<SystemId> {
-    let start_id = find_system(&map, start);
-    shortest_route_hub_major(&map, start_id)
-        .expect(&format!("no route found from {} to high sec", start))
-}
 
-//Modified function for find shortest route to major trade hub --Brian Allen
-fn find_route_hub_minor(map: &Map, start: &str) -> Vec<SystemId> {
-    let start_id = find_system(&map, start);
-    shortest_route_hub_minor(&map, start_id)
-        .expect(&format!("no route found from {} to high sec", start))
-}
-
-fn find_system(map: &Map, name: &str) -> SystemId {
-    map.by_name(name)
-        .expect(&format!("could not find {} in map", name))
-        .system_id
-}
 //The base of this web service comes from Programming Rust:Fast, Safe Systems Develpment pg 38-45
 fn main() {
     let mut router = Router::new();
