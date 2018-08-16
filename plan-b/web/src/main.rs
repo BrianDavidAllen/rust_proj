@@ -102,6 +102,7 @@ fn get_route(_request: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
+
 ///Post data. Will send html/js response with data --Brian Allen
 //Base comes from Programming Rust:Fast, Safe Systems Develpment pg 38-45
 fn post_route(request: &mut Request) -> IronResult<Response> {

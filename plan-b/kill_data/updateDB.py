@@ -12,9 +12,7 @@ from datetime import timedelta
 
 '''
 updates sqlite database with kill data from CCP and Zkillboard via reisq.zkillboard
-
 credit for zkillboard data goes redisQ https://github.com/zKillboard/RedisQ
-
 If you run into issues with the sqlite3 database being locked use command fuser eve_system.db to see what process you need to kill. 
 '''
 

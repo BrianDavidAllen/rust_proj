@@ -1,0 +1,49 @@
+[?1049h[?1h=[1;47r[?12;25h[?12l[?25h[27m[23m[m[H[2J[?25l[47;1H"updateDB.py" 70L, 2453C[1;1H[38;5;130m  1 [m[34m# Copyright © 2018 EVE-escapes[m
+[38;5;130m  2 [m[34m# [This program is licensed under the "GNU General Public License"][m
+[38;5;130m  3 [m[34m# Please see the file LICENSE in the source[m
+[38;5;130m  4 [m[34m# distribution of this software for license terms.[m
+[38;5;130m  5 
+  6 [m[35mimport[m json
+[38;5;130m  7 [m[35mimport[m sqlite3
+[38;5;130m  8 [m[35mimport[m urllib.request
+[38;5;130m  9 [m[35mimport[m time
+[38;5;130m 10 [m[35mfrom[m datetime [35mimport[m datetime
+[38;5;130m 11 [m[35mfrom[m datetime [35mimport[m timedelta
+[38;5;130m 12 
+ 13 [m[31m'''[m
+[38;5;130m 14 [m[31mupdates sqlite database with kill data from CCP and Zkillboard via reisq.zkillboard[m
+[38;5;130m 15 
+ 16 [m[31mcredit for zkillboard data goes redisQ https://github.com/zKillboard/RedisQ[m
+[38;5;130m 17 
+ 18 [m[31mIf you run into issues with the sqlite3 database being locked use command fuser eve_system.db to see what process you need to kill. [m
+[38;5;130m 19 [m[31m'''[m
+[38;5;130m 20 
+ 21 [m[34m#set up refresh time for CCP data. Their severs only update once an hour[m
+[38;5;130m 22 [mupdate_time = datetime.now() + timedelta(hours = [31m1[m)
+[38;5;130m 23 [m[31m'''[m
+[38;5;130m 24 [m[31mwith urllib.request.urlopen('https://esi.tech.ccp.is/latest/universe/system_kills/') as h1:[m
+[38;5;130m 25 [m[31m        universe_kills = json.loads(h1.read().decode('utf-8'))[m
+[38;5;130m 26 
+ 27 [m[31mprint("Info from CCP")[m
+[38;5;130m 28 [m[31m#connect to local .db file[m
+[38;5;130m 29 [m[31mdb = sqlite3.connect('eve_system.db')[m
+[38;5;130m 30 [m[31mc = db.cursor()[m
+[38;5;130m 31 [m[31m'''[m
+[38;5;130m 32 [m[34m#updates kills [m
+[38;5;130m 33 [m[34m#for system in universe_kills:[m
+[38;5;130m 34 [m[34m#       c.execute('''UPDATE systems SET kills = ? WHERE system_id = ?''', (system['ship_kills'], system['system_id']))                        [m
+[38;5;130m 35 [m[34m#       db.commit()[m
+[38;5;130m 36 
+ 37 [m[36mprint[m([31m"ccp update"[m)
+[38;5;130m 38 [m[34m#run continuously [m
+[38;5;130m 39 while[m [36mTrue[m:
+[38;5;130m 40 [m[34m#Check to see if it's time to update[m
+[38;5;130m 41 [8Cif[m datetime.now() >= update_time:
+[38;5;130m 42 [m[16Cupdate_time = datetime.now() + timedelta(hours = [31m1[m)
+[38;5;130m 43 [m[16C[36mprint[m([31m"update timer reset"[m)
+[38;5;130m 44 
+ 45 [m[34m#open connection to CCP to get kill data[m
+[38;5;130m 46 [16Cwith[m urllib.request.urlopen([31m'https://esi.tech.ccp.is/latest/universe/system_kills/'[m) [38;5;130mas[m h1:[47;150H1,1[11CTop[1;5H[?12l[?25h[?25l[47;1HType  :quit<Enter>  to exit Vim[47;150H[K[47;150H1,1[11CTop[1;5H[?12l[?25h[?25l[47;150H[K[47;150H1,1[11CTop[1;5H[?12l[?25h[?25l[47;150H[K[47;150H1,1[11CTop[1;5H[?12l[?25h[?25l[47;1H[97m[41mE78: Unknown mark[m[47;18H[K[47;150H1,1[11CTop[1;5H[?12l[?25h[?25l[47;150H2[2;5H[?12l[?25h[?25l[47;1H[1m-- INSERT --[m[47;13H[K[47;150H2,68[10CTop[2;7H[34m[106m[[63C][?12l[?25h[?25l[m[34m^Z[2;7H[[63C][m[47;153H9-70[2;74H[?12l[?25h[?25l[34m^Z[m[47;152H70-72[2;76H[?12l[?25h[?25l[34m^Z[m[47;153H1-74[2;78H[?12l[?25h[47;1H[?1l>[?1049lVim: Caught deadly signal HUP
+Vim: preserving files...
+Vim: Finished.
+[47;1H
