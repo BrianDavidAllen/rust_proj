@@ -1,0 +1,1 @@
+{"rustc":2095583076729661393,"features":"[\"default\", \"linkage\", \"sqlite3-sys\"]","target":17650491289696676065,"profile":7990393541957723157,"path":9874410991289518695,"deps":[["libc v0.2.43","libc",5625331060848088544],["sqlite3-sys v0.12.0","sqlite3_sys",7407632840885189677]],"local":[{"Precalculated":"0.24.0"}],"rustflags":[],"edition":"Edition2015"}

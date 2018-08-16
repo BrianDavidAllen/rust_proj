@@ -38,17 +38,11 @@ Software contributions
 ## Build and install
 * Once the repository is downloaded, make sure you've installed sqlite3, python3, and Rust.
 * run the updateDB.py by using "python3 updateDB.py" to update the databse. Script will continually run and print to screen when data is updated. 
-* While updateDB.py is running, run "python3 path_generator.py 'sys_from' sys_to'". 
-* Ex "python3 path_generator.py Amarr Jita" will return the shortest path with no kills from Amarr to Jita and print them to screen. 
-* The independent .html files can be run locally produce a web page--unfortunatley we were not able to get a web service up and running. 
-
-
-The files used in this project are Python3.6 with Networkx library, CSS, HTML, JavaScript, while using JSON files for formatted input.
+* While updateDB.py is running, do a cargo run --release within the web folder. A message will print with the local host address. Follow the prompts on the webpage to find the route desired. 
 
 ## Acknowledgments
 
 * Shout out to po huit and his github for putting together a json dump of the eve universe. https://github.com/PoHuit/plan-b
-* Shout out to Networkx for putting having such an easy to use graph and algorithms. https://networkx.github.io/ 
 * A final thanks to the https://github.com/zKillboard/RedisQ for putting together the website for getting zkill data.
 <!--stackedit_data:
 eyJoaXN0b3J5IjpbMTU3ODcxOTMzMF19

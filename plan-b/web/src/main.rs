@@ -1,3 +1,10 @@
+//Copyright (c) 2018 Brian Allen 
+// [This program is licensed under the "MIT License"]
+// Please see the file LICENSE in the source
+// distribution of this software for license terms.
+
+
+
 extern crate serde;
 extern crate serde_json;
 
