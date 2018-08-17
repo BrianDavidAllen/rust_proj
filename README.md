@@ -29,6 +29,7 @@ __Plan B__
 * Added functionality to find the shortest route from a given system to a high security system
 * Added functionality to find the shortest route from a given system to a major trade hub (Jita, Amarr, etc)
 * Added functionality to find the shortest route from a given system to a minor trade hub (Oursulaert, Tash-Murkon Prime, and Agil)
+* Added rust test for each new funcionallity 
 __Eve-Escapes__ 
 * Used systems database and scirpt used to scrape kills from zkillboard to keep database current. updateDB.py
 __Rust_Proj:Plan-B Extended__ 
@@ -54,6 +55,16 @@ __Rust_Proj:Plan-B Extended__
 ## Current Issues
 * Need to wait about three minutes after starting up updateDB.py to finishing load the data dump from CCP or you will get a database is locked error.
 * Haven't had the time to test if all the kill data presented from the web service is accurate. I beleive the fix I made the other night will take care of it. 
+
+## Things I learned
+* I learned that rust doesn't want to Ord or Eq floats **thanks noisy_float crate**
+* Learned how to implment a BFS search via Po's code.
+* Learned much quit a bit on how to use the Iron frameworks
+* Learned how to attach links with javascript (took much longer than I'd like to admit).
+* Learned how much faster a rust runs not in debug mode. 
+* Finally learned how to deal with rust Strings
+* I'm sure more was learned but I can't think of it now. 
+* Rust is fickle but fun and safe!
 
 ## Acknowledgments
 * Big thanks to Po Huit and his github for putting together the meat of this project. The search functionality would not have been possible without plan-b. https://github.com/PoHuit/plan-b
