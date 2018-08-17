@@ -38,6 +38,34 @@ of New Eden and show the endpoints of the three longest
 shortest routes. The code will take about 10 seconds to
 compute the answer.
 
+Say
+
+        cargo run -p cmdline --release -- --highsec *start*
+to display a shortest route from the system named *start* to
+the nearest high security system The code will take a couple of
+seconds to load the map, a millisecond or so to find and
+display the route, and then will print all the hops, one per
+line, on stdout.
+
+Say
+
+        cargo run -p cmdline --release -- --major_hub *start*
+to display a shortest route from the system named *start* to
+the nearest major trade hub. The code will take a couple of
+seconds to load the map, a millisecond or so to find and
+display the route, and then will print all the hops, one per
+line, on stdout.
+
+Say
+
+        cargo run -p cmdline --release -- --minor_hub *start*
+to display a shortest route from the system named *start* to
+the nearest minor trade hub. The code will take a couple of
+seconds to load the map, a millisecond or so to find and
+display the route, and then will print all the hops, one per
+line, on stdout.
+
+
 ### Run The Webserver
 
 Plan B can also run as a web service, powered by the
